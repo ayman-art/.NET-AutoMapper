@@ -100,15 +100,24 @@ builder.Services.AddAutoMapper(cfg =>
 });
 ```
 
-3. **Create a Profile (`Profiles/UserProfile.cs`)**:
+3. **Create a Profile (`Profiles/UserProfile.cs`)**: a Profile is a class used to group and configure mappings between types.
 
 ```csharp
-public class UserProfile : Profile {
-    public UserProfile() {
-        CreateMap<User, UserDto>();
-        CreateMap<CreateUserDto, User>();
-        CreateMap<Address, AddressDto>().ReverseMap();
-    }
+public UserProfile()
+{
+    CreateMap<User, UserDto>()
+        .ForMember(dest => dest.FullName,
+            opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
+        .ForMember(dest => dest.AddressLine,
+            opt => opt.MapFrom(src => $"{src.Address.Street}, {src.Address.City}"))
+        .ForMember(dest => dest.MemberSince,
+            opt => opt.MapFrom(src => src.CreatedAt.ToString("MMMM yyyy")));
+
+    CreateMap<CreateUserDto, User>()
+        .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+
+    CreateMap<Address, AddressDto>().ReverseMap();
+}
 }
 ```
 
